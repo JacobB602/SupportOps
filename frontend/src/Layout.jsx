@@ -64,42 +64,59 @@ function Layout() {
 
           <h3>Create Ticket</h3>
 
-          <input
-            type="text"
-            placeholder="Ticket title"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-          />
+          <div className="ticket-form">
+            <input
+              type="text"
+              placeholder="Ticket title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+            />
 
-          <textarea
-            placeholder="Ticket description"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-          />
+            <textarea
+              placeholder="Ticket description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
 
-          <select
-            value={priority}
-            onChange={(event) => setPriority(event.target.value)}
-          >
-            <option value="P1">P1</option>
-            <option value="P2">P2</option>
-            <option value="P3">P3</option>
-            <option value="P4">P4</option>
-          </select>
+            <div className="ticket-form-row">
+              <select
+                value={priority}
+                onChange={(event) => setPriority(event.target.value)}
+              >
+                <option value="P1">P1</option>
+                <option value="P2">P2</option>
+                <option value="P3">P3</option>
+                <option value="P4">P4</option>
+              </select>
 
-          <button onClick={createTicket}>Create Ticket</button>
+              <button onClick={createTicket}>Create Ticket</button>
+            </div>
+          </div>
 
           <h3>Tickets</h3>
 
           {tickets.length === 0 ? (
             <p>No tickets found.</p>
-          ) : (
-            tickets.map((ticket) => (
-              <div key={ticket.id}>
-                <strong>{ticket.title}</strong>
-                <p>{ticket.description}</p>
-              </div>
-            ))
+            ) : (
+            <div className="ticket-list">
+              {tickets.map((ticket) => (
+                <div className="ticket-card" key={ticket.id}>
+                  <div className="ticket-card-header">
+                    <strong>{ticket.title}</strong>
+                    <span className={`ticket-priority priority-${ticket.priority.toLowerCase()}`}>
+                      {ticket.priority}
+                    </span>
+                  </div>
+
+                  <p>{ticket.description}</p>
+
+                  <div className="ticket-card-footer">
+                    <span>Ticket #{ticket.id}</span>
+                    <span>{ticket.status}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </main>
       </div>
