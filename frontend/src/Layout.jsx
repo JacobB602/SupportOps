@@ -5,6 +5,7 @@ function Layout() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("P3");
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   const createTicket = async () => {
     try {
@@ -89,6 +90,33 @@ function Layout() {
         <main className="main-content">
           <h2>Support Dashboard</h2>
 
+          {selectedTicket && (
+            <div className="ticket-details">
+              <div className="ticket-details-header">
+                <div>
+                  <h3>{selectedTicket.title}</h3>
+                  <span>Ticket #{selectedTicket.id}</span>
+                </div>
+
+                <button
+                  onClick={() => setSelectedTicket(null)}
+                  className="close-details-button"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="ticket-details-content">
+                <p>{selectedTicket.description}</p>
+
+                <div className="ticket-details-meta">
+                  <span>Priority: {selectedTicket.priority}</span>
+                  <span>Status: {selectedTicket.status}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <h3>Create Ticket</h3>
 
           <div className="ticket-form">
@@ -127,7 +155,11 @@ function Layout() {
             ) : (
             <div className="ticket-list">
               {tickets.map((ticket) => (
-                <div className="ticket-card" key={ticket.id}>
+                <div
+                  className="ticket-card"
+                  key={ticket.id}
+                  onClick={() => setSelectedTicket(ticket)}
+                >
                   <div className="ticket-card-header">
                     <strong>{ticket.title}</strong>
                     <span className={`ticket-priority priority-${ticket.priority.toLowerCase()}`}>
