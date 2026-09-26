@@ -1,10 +1,12 @@
 const express = require("express");
+const cors = require("cors");
 const pool = require("./db/database");
 const ticketRoutes = require("./routes/ticketRoutes");
 
 const app = express();
 const PORT = 3000;
 
+app.use(cors());
 app.use(express.json());
 
 app.get("/health", (req, res) => {
