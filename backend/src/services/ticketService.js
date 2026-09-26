@@ -31,10 +31,10 @@ const createTicket = async (title, description, priority) => {
 const updateTicket = async (id, title, description, priority, status) => {
   const result = await pool.query(
     `UPDATE tickets
-     SET title = $1,
-         description = $2,
-         priority = $3,
-         status = $4
+     SET title = COALESCE($1, title),
+         description = COALESCE($2, description),
+         priority = COALESCE($3, priority),
+         status = COALESCE($4, status)
      WHERE id = $5
      RETURNING *`,
     [title, description, priority, status, id]

@@ -49,10 +49,10 @@ const updateTicket = async (req, res) => {
 
     const ticket = await ticketService.updateTicket(
       req.params.id,
-      title,
-      description,
-      priority,
-      status
+      title ?? null,
+      description ?? null,
+      priority ?? null,
+      status ?? null
     );
 
     if (!ticket) {

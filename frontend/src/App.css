@@ -221,3 +221,19 @@
   background-color: #f3f4f6;
   color: #4b5563;
 }
+
+.ticket-status {
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: #ffffff;
+  color: #4b5563;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ticket-status:focus {
+  outline: none;
+  border-color: #2563eb;
+}

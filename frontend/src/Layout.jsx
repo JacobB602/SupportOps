@@ -32,6 +32,33 @@ function Layout() {
     }
   };
 
+  const updateTicketStatus = async (ticketId, status) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/tickets/${ticketId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status,
+          }),
+        }
+      );
+
+      const updatedTicket = await response.json();
+
+      setTickets((currentTickets) =>
+        currentTickets.map((ticket) =>
+          ticket.id === updatedTicket.id ? updatedTicket : ticket
+        )
+      );
+    } catch (error) {
+      console.error("Error updating ticket status:", error);
+    }
+  };
+
   useEffect(() => {
     fetch("http://localhost:3000/tickets")
       .then((response) => response.json())
@@ -112,7 +139,20 @@ function Layout() {
 
                   <div className="ticket-card-footer">
                     <span>Ticket #{ticket.id}</span>
-                    <span>{ticket.status}</span>
+
+                    <select
+                      value={ticket.status}
+                      onChange={(event) =>
+                        updateTicketStatus(ticket.id, event.target.value)
+                      }
+                      className="ticket-status"
+                    >
+                      <option value="Open">Open</option>
+                      <option value="Investigating">Investigating</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Resolved">Resolved</option>
+                      <option value="Closed">Closed</option>
+                    </select>
                   </div>
                 </div>
               ))}
