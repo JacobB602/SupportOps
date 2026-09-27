@@ -298,3 +298,93 @@
   color: #6b7280;
   font-size: 13px;
 }
+
+.ticket-details-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-ticket-button,
+.save-ticket-button,
+.cancel-ticket-button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-ticket-button {
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #374151;
+}
+
+.edit-ticket-button:hover {
+  background-color: #f3f4f6;
+}
+
+.save-ticket-button {
+  border: none;
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.save-ticket-button:hover {
+  background-color: #1d4ed8;
+}
+
+.cancel-ticket-button {
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #374151;
+}
+
+.cancel-ticket-button:hover {
+  background-color: #f3f4f6;
+}
+
+.ticket-edit-title {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.ticket-edit-description {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151;
+  resize: vertical;
+}
+
+.ticket-edit-priority {
+  margin-left: 8px;
+  padding: 5px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  background-color: #ffffff;
+  color: #374151;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.ticket-edit-title:focus,
+.ticket-edit-description:focus,
+.ticket-edit-priority:focus {
+  outline: none;
+  border-color: #2563eb;
+}

@@ -6,6 +6,10 @@ function Layout() {
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("P3");
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [isEditingTicket, setIsEditingTicket] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editPriority, setEditPriority] = useState("P3");
 
   const createTicket = async () => {
     try {
@@ -60,6 +64,45 @@ function Layout() {
     }
   };
 
+  const startEditingTicket = () => {
+    setEditTitle(selectedTicket.title);
+    setEditDescription(selectedTicket.description);
+    setEditPriority(selectedTicket.priority);
+    setIsEditingTicket(true);
+  };
+
+  const saveTicketEdits = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/tickets/${selectedTicket.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: editTitle,
+            description: editDescription,
+            priority: editPriority,
+          }),
+        }
+      );
+
+      const updatedTicket = await response.json();
+
+      setTickets((currentTickets) =>
+        currentTickets.map((ticket) =>
+          ticket.id === updatedTicket.id ? updatedTicket : ticket
+        )
+      );
+
+      setSelectedTicket(updatedTicket);
+      setIsEditingTicket(false);
+    } catch (error) {
+      console.error("Error saving ticket edits:", error);
+    }
+  };
+
   useEffect(() => {
     fetch("http://localhost:3000/tickets")
       .then((response) => response.json())
@@ -94,25 +137,95 @@ function Layout() {
             <div className="ticket-details">
               <div className="ticket-details-header">
                 <div>
-                  <h3>{selectedTicket.title}</h3>
+                  {isEditingTicket ? (
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(event) => setEditTitle(event.target.value)}
+                      className="ticket-edit-title"
+                    />
+                  ) : (
+                    <h3>{selectedTicket.title}</h3>
+                  )}
+
                   <span>Ticket #{selectedTicket.id}</span>
                 </div>
 
-                <button
-                  onClick={() => setSelectedTicket(null)}
-                  className="close-details-button"
-                >
-                  Close
-                </button>
+                <div className="ticket-details-actions">
+                  {isEditingTicket ? (
+                    <>
+                      <button
+                        onClick={saveTicketEdits}
+                        className="save-ticket-button"
+                      >
+                        Save Changes
+                      </button>
+
+                      <button
+                        onClick={() => setIsEditingTicket(false)}
+                        className="cancel-ticket-button"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={startEditingTicket}
+                      className="edit-ticket-button"
+                    >
+                      Edit
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setSelectedTicket(null);
+                      setIsEditingTicket(false);
+                    }}
+                    className="close-details-button"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
 
               <div className="ticket-details-content">
-                <p>{selectedTicket.description}</p>
+                {isEditingTicket ? (
+                  <>
+                    <textarea
+                      value={editDescription}
+                      onChange={(event) => setEditDescription(event.target.value)}
+                      className="ticket-edit-description"
+                    />
 
-                <div className="ticket-details-meta">
-                  <span>Priority: {selectedTicket.priority}</span>
-                  <span>Status: {selectedTicket.status}</span>
-                </div>
+                    <div className="ticket-details-meta">
+                      <label>
+                        Priority:
+                        <select
+                          value={editPriority}
+                          onChange={(event) => setEditPriority(event.target.value)}
+                          className="ticket-edit-priority"
+                        >
+                          <option value="P1">P1</option>
+                          <option value="P2">P2</option>
+                          <option value="P3">P3</option>
+                          <option value="P4">P4</option>
+                        </select>
+                      </label>
+
+                      <span>Status: {selectedTicket.status}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p>{selectedTicket.description}</p>
+
+                    <div className="ticket-details-meta">
+                      <span>Priority: {selectedTicket.priority}</span>
+                      <span>Status: {selectedTicket.status}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
