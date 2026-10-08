@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const pool = require("./db/database");
 const ticketRoutes = require("./routes/ticketRoutes");
+const organizationRoutes = require("./routes/organizationRoutes");
 
 const app = express();
 const PORT = 3000;
@@ -14,6 +15,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/tickets", ticketRoutes);
+app.use("/organizations", organizationRoutes);
 
 pool.query("SELECT NOW()", (error, result) => {
   if (error) {
