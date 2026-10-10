@@ -2,7 +2,22 @@ const pool = require("../db/database");
 
 const getAllOrganizations = async () => {
   const result = await pool.query(
-    "SELECT * FROM organizations ORDER BY name"
+    `SELECT
+       organizations.id,
+       organizations.name,
+       organizations.created_at,
+       COUNT(DISTINCT schools.id)::int AS school_count,
+       COUNT(DISTINCT users.id)::int AS user_count
+     FROM organizations
+     LEFT JOIN schools
+       ON schools.organization_id = organizations.id
+     LEFT JOIN users
+       ON users.school_id = schools.id
+     GROUP BY
+       organizations.id,
+       organizations.name,
+       organizations.created_at
+     ORDER BY organizations.name`
   );
 
   return result.rows;

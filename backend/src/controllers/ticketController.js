@@ -26,19 +26,32 @@ const getTicketById = async (req, res) => {
   }
 };
 
+
 const createTicket = async (req, res) => {
   try {
-    const { title, description, priority } = req.body;
+    const { title, description, priority, userId } = req.body;
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({ error: "Ticket title is required" });
+    }
 
     const ticket = await ticketService.createTicket(
-      title,
+      title.trim(),
       description,
-      priority
+      priority,
+      userId ?? null
     );
 
     res.status(201).json(ticket);
   } catch (error) {
     console.error("Error creating ticket:", error);
+
+    if (error.code === "23503") {
+      return res.status(400).json({
+        error: "The selected caller does not exist",
+      });
+    }
+
     res.status(500).json({ error: "Failed to create ticket" });
   }
 };
