@@ -11,6 +11,21 @@ const getAllTickets = async (req, res) => {
   }
 };
 
+const getTicketsByUserId = async (req, res) => {
+  try {
+    const tickets = await ticketService.getTicketsByUserId(
+      req.params.userId
+    );
+
+    res.json(tickets);
+  } catch (error) {
+    console.error("Error fetching tickets for user:", error);
+    res.status(500).json({
+      error: "Failed to fetch tickets for user",
+    });
+  }
+};
+
 const getTicketById = async (req, res) => {
   try {
     const ticket = await ticketService.getTicketById(req.params.id);
@@ -96,6 +111,7 @@ const deleteTicket = async (req, res) => {
 
 module.exports = {
   getAllTickets,
+  getTicketsByUserId,
   getTicketById,
   createTicket,
   updateTicket,

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 function Layout() {
@@ -10,6 +11,11 @@ function Layout() {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [userLoading, setUserLoading] = useState(false);
   const [userError, setUserError] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userTickets, setUserTickets] = useState([]);
+  const [userTicketsLoading, setUserTicketsLoading] = useState(false);
+  const [userTicketsError, setUserTicketsError] = useState("");
 
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isEditingTicket, setIsEditingTicket] = useState(false);
@@ -69,9 +75,7 @@ function Layout() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            status,
-          }),
+          body: JSON.stringify({ status }),
         }
       );
 
@@ -160,6 +164,34 @@ function Layout() {
       });
   }, []);
 
+  // Load ticket history for a selected user
+  const loadUserTickets = async (user) => {
+    setSelectedUser(user);
+    setUserTickets([]);
+    setUserTicketsLoading(true);
+    setUserTicketsError("");
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/tickets/user/${user.id}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to load ticket history");
+      }
+
+      const data = await response.json();
+      setUserTickets(data);
+    } catch (error) {
+      console.error("Error loading user ticket history:", error);
+      setUserTicketsError(
+        "Unable to load ticket history. Please try again."
+      );
+    } finally {
+      setUserTicketsLoading(false);
+    }
+  };
+
   // Load all users when the application starts
   useEffect(() => {
     const loadUsers = async () => {
@@ -177,7 +209,9 @@ function Layout() {
         setUsers(data);
       } catch (error) {
         console.error("Error fetching users:", error);
-        setUserError("Could not load callers. Check that the backend is running.");
+        setUserError(
+          "Could not load callers. Check that the backend is running."
+        );
       } finally {
         setUserLoading(false);
       }
@@ -235,12 +269,27 @@ function Layout() {
     }
   };
 
+  // Filter users by name or email
+  const filteredUsers = users.filter((user) => {
+    const search = userSearch.trim().toLowerCase();
+
+    return (
+      user.name?.toLowerCase().includes(search) ||
+      user.email?.toLowerCase().includes(search)
+    );
+  });
+
   // Navigate between sections
   const navigateToPage = (page) => {
     setActivePage(page);
     setSelectedOrganization(null);
     setSelectedTicket(null);
     setIsEditingTicket(false);
+
+    // Clear user history when leaving the Users page
+    setSelectedUser(null);
+    setUserTickets([]);
+    setUserTicketsError("");
 
     if (page === "Organizations") {
       loadOrganizations();
@@ -256,26 +305,33 @@ function Layout() {
 
       <div className="app-body">
         <nav className="sidebar">
-          {["Dashboard", "Tickets", "Incidents", "Users", "Organizations"].map(
-            (page) => (
-              <div
-                key={page}
-                className={`sidebar-item ${
-                  activePage === page ? "active" : ""
-                }`}
-                onClick={() => navigateToPage(page)}
-              >
-                {page}
-              </div>
-            )
-          )}
+          {[
+            "Dashboard",
+            "Tickets",
+            "Incidents",
+            "Users",
+            "Organizations",
+          ].map((page) => (
+            <div
+              key={page}
+              className={`sidebar-item ${
+                activePage === page ? "active" : ""
+              }`}
+              onClick={() => navigateToPage(page)}
+            >
+              {page}
+            </div>
+          ))}
         </nav>
 
         <main className="main-content">
+          {/* Organizations page */}
           {activePage === "Organizations" ? (
             <div>
               <h2>Organizations</h2>
-              <p>View organizations, their schools, and associated users.</p>
+              <p>
+                View organizations, their schools, and associated users.
+              </p>
 
               {organizationLoading && <p>Loading...</p>}
 
@@ -312,7 +368,9 @@ function Layout() {
 
                             <div className="organization-card-title">
                               <h3>{organization.name}</h3>
-                              <p>Organization ID: {organization.id}</p>
+                              <p>
+                                Organization ID: {organization.id}
+                              </p>
                             </div>
                           </div>
 
@@ -349,19 +407,18 @@ function Layout() {
               {!organizationLoading &&
                 !organizationError &&
                 selectedOrganization && (
-                <div className="organization-details">
-                  <button
-                    className="back-to-organizations-button"
-                    onClick={() => {
-                      setSelectedOrganization(null);
-                      loadOrganizations();
-                    }}
-                  >
-                    &larr; Back to Organizations
-                  </button>
+                  <div className="organization-details">
+                    <button
+                      className="back-to-organizations-button"
+                      onClick={() => {
+                        setSelectedOrganization(null);
+                        loadOrganizations();
+                      }}
+                    >
+                      &larr; Back to Organizations
+                    </button>
 
                     <h3>{selectedOrganization.name}</h3>
-
                     <h4>Schools</h4>
 
                     {!selectedOrganization.schools ||
@@ -371,7 +428,6 @@ function Layout() {
                       selectedOrganization.schools.map((school) => (
                         <div className="school-card" key={school.id}>
                           <h4>{school.name}</h4>
-
                           <h5>Users</h5>
 
                           {!school.users || school.users.length === 0 ? (
@@ -379,7 +435,10 @@ function Layout() {
                           ) : (
                             <div className="school-user-list">
                               {school.users.map((user) => (
-                                <div className="school-user-card" key={user.id}>
+                                <div
+                                  className="school-user-card"
+                                  key={user.id}
+                                >
                                   <div className="school-user-header">
                                     <div className="school-user-avatar">
                                       {user.name
@@ -398,7 +457,9 @@ function Layout() {
                                   </div>
 
                                   <div className="school-user-email">
-                                    <span className="school-user-email-label">Email</span>
+                                    <span className="school-user-email-label">
+                                      Email
+                                    </span>
                                     <a href={`mailto:${user.email}`}>
                                       {user.email}
                                     </a>
@@ -413,16 +474,199 @@ function Layout() {
                   </div>
                 )}
             </div>
+          ) : activePage === "Users" ? (
+            /* Users page */
+            <div>
+              <h2>Users</h2>
+              <p>
+                View users and their associated schools and organizations.
+              </p>
+
+              {/* Selected user's ticket history */}
+              {selectedUser && (
+                <div className="user-ticket-history">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedUser(null);
+                      setUserTickets([]);
+                      setUserTicketsError("");
+                    }}
+                  >
+                    &larr; Back to Users
+                  </button>
+
+                  <h3>Ticket History: {selectedUser.name}</h3>
+
+                  <p>
+                    {selectedUser.school_name || "Unassigned school"} ·{" "}
+                    {selectedUser.organization_name ||
+                      "Unassigned organization"}
+                  </p>
+
+                  {userTicketsLoading && (
+                    <p>Loading ticket history...</p>
+                  )}
+
+                  {userTicketsError && (
+                    <p className="error-message">{userTicketsError}</p>
+                  )}
+
+                  {!userTicketsLoading &&
+                    !userTicketsError &&
+                    (userTickets.length === 0 ? (
+                      <p>This user has no tickets yet.</p>
+                    ) : (
+                      <div className="user-ticket-list">
+                        {userTickets.map((ticket) => (
+                          <div
+                            className="user-ticket-card"
+                            key={ticket.id}
+                          >
+                            <h4>{ticket.title}</h4>
+
+                            <p>
+                              {ticket.description ||
+                                "No description provided."}
+                            </p>
+
+                            <div className="user-ticket-meta">
+                              <span
+                                className={`ticket-priority priority-${ticket.priority?.toLowerCase()}`}
+                              >
+                                Priority: {ticket.priority || "Unassigned"}
+                              </span>
+
+                              <span
+                                className={`ticket-status status-${ticket.status?.toLowerCase().replace(/\s+/g, "-")}`}
+                              >
+                                {ticket.status || "Unknown"}
+                              </span>
+
+                              <span className="ticket-created">
+                                Created:{" "}
+                                {ticket.created_at
+                                  ? new Date(
+                                      ticket.created_at
+                                    ).toLocaleDateString()
+                                  : "Unknown"}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              {/* User search is hidden during ticket history */}
+              {!selectedUser && (
+                <div className="user-search">
+                  <input
+                    type="text"
+                    placeholder="Search users by name or email..."
+                    value={userSearch}
+                    onChange={(event) =>
+                      setUserSearch(event.target.value)
+                    }
+                    aria-label="Search users by name or email"
+                  />
+                </div>
+              )}
+
+              {!selectedUser && userLoading && (
+                <p>Loading users...</p>
+              )}
+
+              {!selectedUser && userError && (
+                <p className="error-message">{userError}</p>
+              )}
+
+              {/* User directory is hidden during ticket history */}
+              {!selectedUser &&
+                !userLoading &&
+                !userError &&
+                (filteredUsers.length === 0 ? (
+                  <p>
+                    {users.length === 0
+                      ? "No users found."
+                      : "No users match your search."}
+                  </p>
+                ) : (
+                  <div className="user-list">
+                    {filteredUsers.map((user) => (
+                      <div className="user-card" key={user.id}>
+                        <div className="user-card-header">
+                          <div
+                            className="user-avatar"
+                            aria-hidden="true"
+                          >
+                            {user.name
+                              .split(" ")
+                              .filter(Boolean)
+                              .map((part) => part[0])
+                              .join("")
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </div>
+
+                          <div>
+                            <h3>{user.name}</h3>
+                            <p className="user-role">
+                              {user.role || "Support User"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="user-card-details">
+                          <div>
+                            <span className="user-detail-label">
+                              Email
+                            </span>
+                            <a href={`mailto:${user.email}`}>
+                              {user.email}
+                            </a>
+                          </div>
+
+                          <div>
+                            <span className="user-detail-label">
+                              School
+                            </span>
+                            <span>
+                              {user.school_name || "Unassigned"}
+                            </span>
+                          </div>
+
+                          <div>
+                            <span className="user-detail-label">
+                              Organization
+                            </span>
+                            <span>
+                              {user.organization_name || "Unassigned"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => loadUserTickets(user)}
+                        >
+                          View Ticket History
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+            </div>
           ) : (
+            /* Dashboard, Tickets, and Incidents */
             <>
               <h2>
                 {activePage === "Tickets"
                   ? "Tickets"
                   : activePage === "Incidents"
                     ? "Incidents"
-                    : activePage === "Users"
-                      ? "Users"
-                      : "Support Dashboard"}
+                    : "Support Dashboard"}
               </h2>
 
               {selectedTicket && (
@@ -519,7 +763,9 @@ function Layout() {
                         <p>{selectedTicket.description}</p>
 
                         <div className="ticket-details-meta">
-                          <span>Priority: {selectedTicket.priority}</span>
+                          <span>
+                            Priority: {selectedTicket.priority}
+                          </span>
                           <span>Status: {selectedTicket.status}</span>
                         </div>
                       </>
@@ -541,18 +787,24 @@ function Layout() {
                 <textarea
                   placeholder="Ticket description"
                   value={description}
-                  onChange={(event) => setDescription(event.target.value)}
+                  onChange={(event) =>
+                    setDescription(event.target.value)
+                  }
                 />
 
                 <label className="ticket-caller-field">
                   Caller
                   <select
                     value={selectedUserId}
-                    onChange={(event) => setSelectedUserId(event.target.value)}
+                    onChange={(event) =>
+                      setSelectedUserId(event.target.value)
+                    }
                     disabled={userLoading || users.length === 0}
                   >
                     <option value="">
-                      {userLoading ? "Loading callers..." : "Select a caller (optional)"}
+                      {userLoading
+                        ? "Loading callers..."
+                        : "Select a caller (optional)"}
                     </option>
 
                     {users.map((user) => (
@@ -563,12 +815,16 @@ function Layout() {
                   </select>
                 </label>
 
-                {userError && <p className="error-message">{userError}</p>}
+                {userError && (
+                  <p className="error-message">{userError}</p>
+                )}
 
                 <div className="ticket-form-row">
                   <select
                     value={priority}
-                    onChange={(event) => setPriority(event.target.value)}
+                    onChange={(event) =>
+                      setPriority(event.target.value)
+                    }
                   >
                     <option value="P1">P1</option>
                     <option value="P2">P2</option>
@@ -576,7 +832,9 @@ function Layout() {
                     <option value="P4">P4</option>
                   </select>
 
-                  <button onClick={createTicket}>Create Ticket</button>
+                  <button onClick={createTicket}>
+                    Create Ticket
+                  </button>
                 </div>
               </div>
 
@@ -603,11 +861,14 @@ function Layout() {
                       </div>
 
                       <p>{ticket.description}</p>
+
                       {ticket.caller_name && (
                         <div className="ticket-caller-details">
                           <span>Caller: {ticket.caller_name}</span>
                           <span>School: {ticket.school_name}</span>
-                          <span>Organization: {ticket.organization_name}</span>
+                          <span>
+                            Organization: {ticket.organization_name}
+                          </span>
                         </div>
                       )}
 
@@ -618,12 +879,17 @@ function Layout() {
                           value={ticket.status}
                           onClick={(event) => event.stopPropagation()}
                           onChange={(event) =>
-                            updateTicketStatus(ticket.id, event.target.value)
+                            updateTicketStatus(
+                              ticket.id,
+                              event.target.value
+                            )
                           }
                           className="ticket-status"
                         >
                           <option value="Open">Open</option>
-                          <option value="Investigating">Investigating</option>
+                          <option value="Investigating">
+                            Investigating
+                          </option>
                           <option value="Pending">Pending</option>
                           <option value="Resolved">Resolved</option>
                           <option value="Closed">Closed</option>

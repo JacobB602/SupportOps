@@ -34,6 +34,17 @@ const getTicketById = async (id) => {
   return result.rows[0];
 };
 
+const getTicketsByUserId = async (userId) => {
+  const result = await pool.query(
+    `${ticketQuery}
+     WHERE tickets.user_id = $1
+     ORDER BY tickets.created_at DESC`,
+    [userId]
+  );
+
+  return result.rows;
+};
+
 const createTicket = async (
   title,
   description,
@@ -79,8 +90,10 @@ const deleteTicket = async (id) => {
   return result.rows[0];
 };
 
+
 module.exports = {
   getAllTickets,
+  getTicketsByUserId,
   getTicketById,
   createTicket,
   updateTicket,
