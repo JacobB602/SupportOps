@@ -11,6 +11,24 @@ const getAllOrganizations = async (req, res) => {
   }
 };
 
+const getOrganizationById = async (req, res) => {
+  try {
+    const organization = await organizationService.getOrganizationById(
+      req.params.id
+    );
+
+    if (!organization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    res.json(organization);
+  } catch (error) {
+    console.error("Error fetching organization:", error);
+    res.status(500).json({ error: "Failed to fetch organization" });
+  }
+};
+
 module.exports = {
   getAllOrganizations,
+  getOrganizationById,
 };
