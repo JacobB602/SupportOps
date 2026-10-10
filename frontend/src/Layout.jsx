@@ -6,6 +6,9 @@ function Layout() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("P3");
+  const [ticketSearch, setTicketSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [priorityFilter, setPriorityFilter] = useState("All");
 
   const [users, setUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState("");
@@ -145,6 +148,25 @@ function Layout() {
       console.error("Error saving ticket edits:", error);
     }
   };
+
+  const filteredTickets = tickets.filter((ticket) => {
+    const searchTerm = ticketSearch.toLowerCase();
+
+    const matchesSearch =
+      ticket.title?.toLowerCase().includes(searchTerm) ||
+      ticket.description?.toLowerCase().includes(searchTerm) ||
+      ticket.caller_name?.toLowerCase().includes(searchTerm) ||
+      String(ticket.id).includes(searchTerm);
+
+    const matchesStatus =
+      statusFilter === "All" || ticket.status === statusFilter;
+
+    const matchesPriority =
+      priorityFilter === "All" ||
+      ticket.priority === priorityFilter;
+
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
 
   // Load all tickets when the application starts
   useEffect(() => {
@@ -840,64 +862,109 @@ function Layout() {
 
               <h3>Tickets</h3>
 
+              <div className="ticket-filters">
+                <input
+                  type="text"
+                  placeholder="Search tickets, callers, or ticket ID..."
+                  value={ticketSearch}
+                  onChange={(event) => setTicketSearch(event.target.value)}
+                />
+
+                <select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                >
+                  <option value="All">All statuses</option>
+                  <option value="Open">Open</option>
+                  <option value="Investigating">Investigating</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Resolved">Resolved</option>
+                  <option value="Closed">Closed</option>
+                </select>
+
+                <select
+                  value={priorityFilter}
+                  onChange={(event) => setPriorityFilter(event.target.value)}
+                >
+                  <option value="All">All priorities</option>
+                  <option value="P1">P1</option>
+                  <option value="P2">P2</option>
+                  <option value="P3">P3</option>
+                  <option value="P4">P4</option>
+                </select>
+
+                <button
+                  onClick={() => {
+                    setTicketSearch("");
+                    setStatusFilter("All");
+                    setPriorityFilter("All");
+                  }}
+                >
+                  Clear Filters
+                </button>
+              </div>
+
               {tickets.length === 0 ? (
                 <p>No tickets found.</p>
+              ) : filteredTickets.length === 0 ? (
+                <p>No tickets match your search and filters.</p>
               ) : (
-                <div className="ticket-list">
-                  {tickets.map((ticket) => (
-                    <div
-                      className="ticket-card"
-                      key={ticket.id}
-                      onClick={() => setSelectedTicket(ticket)}
-                    >
-                      <div className="ticket-card-header">
-                        <strong>{ticket.title}</strong>
+                <>
+                  <p className="ticket-results-count">
+                    Showing {filteredTickets.length} of {tickets.length} tickets
+                  </p>
 
-                        <span
-                          className={`ticket-priority priority-${ticket.priority.toLowerCase()}`}
-                        >
-                          {ticket.priority}
-                        </span>
-                      </div>
+                  <div className="ticket-list">
+                    {filteredTickets.map((ticket) => (
+                      <div
+                        className="ticket-card"
+                        key={ticket.id}
+                        onClick={() => setSelectedTicket(ticket)}
+                      >
+                        <div className="ticket-card-header">
+                          <strong>{ticket.title}</strong>
 
-                      <p>{ticket.description}</p>
-
-                      {ticket.caller_name && (
-                        <div className="ticket-caller-details">
-                          <span>Caller: {ticket.caller_name}</span>
-                          <span>School: {ticket.school_name}</span>
-                          <span>
-                            Organization: {ticket.organization_name}
+                          <span
+                            className={`ticket-priority priority-${ticket.priority.toLowerCase()}`}
+                          >
+                            {ticket.priority}
                           </span>
                         </div>
-                      )}
 
-                      <div className="ticket-card-footer">
-                        <span>Ticket #{ticket.id}</span>
+                        <p>{ticket.description}</p>
 
-                        <select
-                          value={ticket.status}
-                          onClick={(event) => event.stopPropagation()}
-                          onChange={(event) =>
-                            updateTicketStatus(
-                              ticket.id,
-                              event.target.value
-                            )
-                          }
-                          className="ticket-status"
-                        >
-                          <option value="Open">Open</option>
-                          <option value="Investigating">
-                            Investigating
-                          </option>
-                          <option value="Pending">Pending</option>
-                          <option value="Resolved">Resolved</option>
-                          <option value="Closed">Closed</option>
-                        </select>
+                        {ticket.caller_name && (
+                          <div className="ticket-caller-details">
+                            <span>Caller: {ticket.caller_name}</span>
+                            <span>School: {ticket.school_name}</span>
+                            <span>
+                              Organization: {ticket.organization_name}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="ticket-card-footer">
+                          <span>Ticket #{ticket.id}</span>
+
+                          <select
+                            value={ticket.status}
+                            onClick={(event) => event.stopPropagation()}
+                            onChange={(event) =>
+                              updateTicketStatus(ticket.id, event.target.value)
+                            }
+                            className="ticket-status"
+                          >
+                            <option value="Open">Open</option>
+                            <option value="Investigating">Investigating</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Closed">Closed</option>
+                          </select>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </>
               )}
             </>
           )}

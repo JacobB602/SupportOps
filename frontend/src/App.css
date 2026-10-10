@@ -1289,3 +1289,81 @@ select:focus-visible {
 .user-card > button:hover {
   background: #244780;
 }
+
+/* Ticket search and filters */
+.ticket-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 16px;
+}
+
+.ticket-filters input,
+.ticket-filters select {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #dbe2ee;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #172033;
+  font: inherit;
+  font-size: 13px;
+}
+
+.ticket-filters input {
+  flex: 1;
+  min-width: 220px;
+  max-width: 420px;
+}
+
+.ticket-filters select {
+  min-width: 135px;
+  cursor: pointer;
+}
+
+.ticket-filters input:focus,
+.ticket-filters select:focus {
+  outline: none;
+  border-color: #3867f5;
+  box-shadow: 0 0 0 3px rgba(56, 103, 245, 0.12);
+}
+
+.ticket-filters button {
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid #dbe2ee;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #344054;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ticket-filters button:hover {
+  background: #f0f4ff;
+  border-color: #b8c8ff;
+}
+
+.ticket-results-count {
+  margin: 0 0 12px;
+  color: #667085;
+  font-size: 13px;
+}
+
+@media (max-width: 650px) {
+  .ticket-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ticket-filters input,
+  .ticket-filters select,
+  .ticket-filters button {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+}
